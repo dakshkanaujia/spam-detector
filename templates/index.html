@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spam Classifier</title>
+    <!-- Use Inter or system-ui for a modern look -->
+    <link href="https://fonts.googleapis.com/css?family=Inter:400,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <h1>Spam Classifier</h1>
+        </header>
+        <main class="main-grid">
+            <section class="card input-card">
+                <h2>Check a Message</h2>
+                <form method="post" class="form">
+                    <textarea name="message" placeholder="Type or paste your message..." required>{{ request.form.message or '' }}</textarea>
+                    <button type="submit" class="accent-btn">Check Spam</button>
+                </form>
+            </section>
+            <section class="card result-card">
+                <h2>Result</h2>
+                {% if result %}
+                    <div class="result">
+                        <span class="result-label {{ 'spam' if result == 'Spam' else 'not-spam' }}">
+                            {{ result }}
+                        </span>
+                        <div class="confidence">
+                            Confidence: <span>{{ '%.2f' % (confidence * 100) }}%</span>
+                        </div>
+                        <canvas id="confidenceChart" width="120" height="120"></canvas>
+                    </div>
+                    <script>
+                        const ctx = document.getElementById('confidenceChart').getContext('2d');
+                        const data = {
+                            labels: ['Not Spam', 'Spam'],
+                            datasets: [{
+                                data: [
+                                    {{ (1-confidence) * 100 if result == 'Spam' else confidence * 100 }},
+                                    {{ confidence * 100 if result == 'Spam' else (1-confidence) * 100 }}
+                                ],
+                                backgroundColor: [
+                                    '#00FFFF',
+                                    '#B300FF'
+                                ],
+                                borderWidth: 0
+                            }]
+                        };
+                        const config = {
+                            type: 'doughnut',
+                            data: data,
+                            options: {
+                                cutout: '70%',
+                                plugins: {
+                                    legend: {
+                                        display: false
+                                    }
+                                }
+                            }
+                        };
+                        new Chart(ctx, config);
+                    </script>
+                {% else %}
+                    <div class="result-placeholder">Result will appear here.</div>
+                {% endif %}
+            </section>
+            <section class="card about-card">
+                <h2>About</h2>
+                <p>
+                    This app uses machine learning to classify SMS/email messages as spam or not spam.<br>
+                    <span class="accent">Built by Daksh Kanaujia.</span>
+                </p>
+            </section>
+        </main>
+        <footer>
+            <span>© 2025 Spam Classifier Dashboard</span>
+        </footer>
+    </div>
+</body>
+</html>
